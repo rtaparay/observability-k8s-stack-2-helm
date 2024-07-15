@@ -14,7 +14,7 @@
 
 🗃️ Loki (using grafana helm chart)
 
-🔎 Promtail (using grafana helm chart)
+🔎 Fluent-Bit (using Fluent-Bit helm chart)
 
 ## 📚 Historia
 
@@ -33,8 +33,6 @@ Configure Grafana para mostrar los registros de la aplicación.
 👑 Amazon EKS
 
 💻 Amazon EC2
-
-🪣Amazon S3
 
 ## ☸️ Monitoreo
 El monitoreo implica rastrear el rendimiento de su aplicación y sus recursos, y enviar alertas cuando algo funciona lentamente o falla, para evitar que los problemas se agraven.
@@ -110,8 +108,6 @@ Es bueno generar una carga mediante un script automatizado. En el directorio ra�
 Entonces, abra otra nueva terminal y ejecute el siguiente comando, tal como se muestra en la siguiente imagen.
 
 kubectl get ingress
-
-export YOUR_LOAD_BALANCER_DNS_NAME=k8s-default-ingressa-4b56d89fe8-1087330346.eu-west-1.elb.amazonaws.com
 
 app/test.sh $YOUR_LOAD_BALANCER_DNS_NAME
 
@@ -201,6 +197,7 @@ Antes de configurar Alertmanager, necesitamos credenciales para enviar correos e
 Abra la configuración de su cuenta de Google y busque App password y cree una nueva contraseña.
 
 Convierte esa contraseña al formato base64.
+
 Generar token de aplicación: 
 - https://support.google.com/accounts/answer/185833?hl=es&sjid=17517275735111420684-SA
 - https://www.base64encode.org/
@@ -224,7 +221,7 @@ http://YOUR_LOAD_BALANCER_DNS_NAME/crash
 
 kubectl get pods
 
-### Desglose de los campos de alerta:
+### Glosario de los campos de alerta:
 
 alert:  El nombre de la alerta ( KubernetesPodNotHealthy).
 
@@ -304,24 +301,21 @@ helm upgrade --install fluent-bit fluent/fluent-bit --version=0.22.0 --namespace
 
 Documentacion oficial: https://docs.fluentbit.io/manual/v/2.0/pipeline/outputs/loki
 
-Test de conectividad desde un pod cualquiera hacia el pod de loki (loki-loki-distributed-gateway):
-
-- curl -X POST "loki-loki-distributed-gateway.observability.svc.cluster.local/loki/api/v1/push"
-- curl -X PUT "loki-loki-distributed-gateway.observability.svc.cluster.local/loki/api/v1/push"
- - curl -X GET "loki-loki-distributed-gateway.observability.svc.cluster.local/loki/api/v1/push"
-
 Para entender cómo se tratan los logs como streams, necesitamos comprender qué es el STDOUT y STDERR. En Linux, cada proceso tiene tres descriptores de archivo estándar: STDIN, STDOUT y STDERR. STDIN es la entrada estándar, desde donde un proceso lee su entrada. STDOUT es la salida estándar, donde un proceso escribe su salida. STDERR es la salida de error estándar, donde un proceso escribe sus mensajes de error.
 
 Ahora, intentemos generar registros desde su aplicación seleccionando el default espacio de nombres en el menú desplegable en la parte superior.
 Puede ejecutar ese test.sh script o visitarlo http://YOUR_LOAD_BALANCER_DNS_NAME/logsen el navegador.
 
-Por último, verifique que fluent-bit esté enviando registros al depósito S3 verificando las carpetas creadas por Loki en la consola AWS S3.
-
 ## 🧼 Limpieza
 
 kubectl delete -k app/
+
 helm uninstall observability-stack -n observability
+
 helm uninstall loki -n observability
+
 helm uninstall fluent-bit -n observability
+
 kubectl delete ns observability
+
 kubectl get pv -n observability # eliminar en caso que exista
