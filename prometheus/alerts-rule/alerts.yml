@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: custom-alert-rules
+  namespace: observability
+spec:
+  groups:
+  - name: custom.rules
+    rules:
+  
+    - alert: HighCpuUsage # Envía una alerta cuando la CPU promedio del nodo sea superior al 50%.
+      expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 50
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage on instance {{ $labels.instance }}"
+        description: "CPU usage is above 50% (current value: {{ $value }}%)"
+
+    - alert: PodRestart   # Envía una alerta cuando un POD se reinicia más de 2 veces.
+      expr: kube_pod_container_status_restarts_total > 2
+      for: 0m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Pod restart detected in namespace {{ $labels.namespace }}"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted {{ $value }} times"

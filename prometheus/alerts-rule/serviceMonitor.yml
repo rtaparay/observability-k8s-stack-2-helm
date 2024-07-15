@@ -1,0 +1,22 @@
+# ServiceMonitor para recopilar las métricas de nuestra aplicación NodeJS
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: app-svc-service-monitor
+    release: observability
+  name: app-svc-service-monitor
+  namespace: observability
+spec:
+  jobLabel: job
+  endpoints:
+    - interval: 2s
+      port: app-svc-port
+      path: /metrics
+  selector:
+    matchLabels:
+      app: app-svc
+  namespaceSelector:
+    matchNames:
+      - observability
+      

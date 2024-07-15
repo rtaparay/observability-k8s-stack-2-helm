@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: app-deploy
+  name: app-deploy
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-deploy
+  template:
+    metadata:
+      labels:
+        app: app-deploy
+    spec:
+      containers:
+      - image: ankitjodhani/prometheus:learning
+        name: prometheus
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
