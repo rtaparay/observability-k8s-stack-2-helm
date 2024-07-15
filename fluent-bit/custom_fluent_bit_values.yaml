@@ -33,50 +33,6 @@ config:
             Skip_Long_Lines   On
             Refresh_Interval  10
 
-        # EXAMPLE PARA MICROSERVICIOS
-        # [INPUT]
-        #     Name              tail
-        #     Tag               app-test-audit.*
-        #     Path              /var/log/containers/*.log
-        #     Exclude_Path      *kube-*,*azure-*,*blackbox-exporter-*,*blobfuse-flexvol-*,*coredns-*,*istio-*,*node-exporter-*,*keyvault-flexvolume-*,*kiali-*,*fluent-bit*,*dashboard*,*newrelic*
-        #     Parser            app_test_jparser
-        #     DB                /var/log/flb_kube.db
-        #     Mem_Buf_Limit     10MB
-        #     Skip_Long_Lines   On
-        #     Refresh_Interval  10
-
-        # [INPUT]
-        #     Name              tail
-        #     Tag               app-test-analytics.*
-        #     Path              /var/log/containers/*.log
-        #     Exclude_Path      *kube-*,*azure-*,*blackbox-exporter-*,*blobfuse-flexvol-*,*coredns-*,*istio-*,*node-exporter-*,*keyvault-flexvolume-*,*kiali-*,*fluent-bit*,*dashboard*,*newrelic*
-        #     Parser            app_test_jparser
-        #     DB                /var/log/flb_kube.db
-        #     Mem_Buf_Limit     10MB
-        #     Skip_Long_Lines   On
-        #     Refresh_Interval  10
-
-        # [INPUT]
-        #     Name tail
-        #     Path /var/log/containers/antrea-controller*.log
-        #     Tag antreacontroller
-        #     parser antrea
-        #     Mem_Buf_Limit 5MB
-
-        # [INPUT]
-        #     Name tail
-        #     Path /var/log/antrea/networkpolicy/np*.log
-        #     Tag antreanetworkpolicy
-        #     parser antreanetworkpolicy
-        #     Mem_Buf_Limit 5MB
-
-        # [INPUT]
-        #     Name tail
-        #     Path /var/log/antrea/openvswitch/ovs*.log
-        #     Tag ovs
-        #     parser ovs
-        #     Mem_Buf_Limit 5MB
-
     ## https://docs.fluentbit.io/manual/pipeline/filters
     filters: |
         [FILTER]
@@ -94,17 +50,6 @@ config:
             Record podname ${HOSTNAME}
             Record nodename ${NODE_NAME}
 
-        # EXAMPLE PARA MICROSERVICIOS
-        # [FILTER]
-        #     Name  grep
-        #     Match app-test-audit.*
-        #     regex log /.*auditTrailSource.*/
-
-        # [FILTER]
-        #     Name  grep
-        #     Match app-test-analytics.*
-        #     regex log /.*analyticsTraceSource.*/
-
     ## https://docs.fluentbit.io/manual/pipeline/outputs
     outputs: |
         # escribirá todos los registros en la pantalla
@@ -112,99 +57,8 @@ config:
             name  stdout
             match *
 
-        # complemento S3
-        # [OUTPUT]
-        #     Name                s3
-        #     Match               *
-        #     region              eu-west-1
-        #     bucket              s3-artefactos-test-devops-logs-test             # S3 bucket name
-        #     role_arn            arn:aws:iam::611415883004:role/lokiLogs         # IAM role ARN
-        #     s3_key_format       /fluent-bit-logs/%Y/%m/%d/%H_%M_%S_$UUID.gz
-        #     s3_key_format_tag_delimiters .-
-        #     use_put_object      On
-        #     compression         gzip
-        #     Port                443
-        #     store_dir           /tmp/fluent-bit/s3      # Almacena los registros en un directorio temporal antes de enviarlos a S3, o en caso de que no se pueda enviar a S3, Esto garantiza que no se pierdan nuestros registros.
-        #     store_dir_limit_size 20G
-        #     upload_timeout      1m
-        #     total_file_size  50M
-        
-        # EXAMPLE PARA SERVICIOS AZURE
-        # [OUTPUT]
-        #     name                  azure_blob
-        #     match                 *
-        #     account_name          ${AZUREBLOB_ACCOUNT_NAME}
-        #     shared_key            ${AZUREBLOB_ACCOUNT_KEY}
-        #     container_name        ${AZUREBLOB_CONTAINER}
-        #     blob_type             blockblob
-        #     path                  ${AZUREBLOB_LOG_PATH}
-        #     auto_create_container on
-        #     tls                   on
-
-        # for sending logs to local Loki instance: https://docs.fluentbit.io/manual/v/2.0/pipeline/outputs/loki
-        [OUTPUT]
-            Name                    loki
-            Match                   *
-            host                    loki-loki-distributed-gateway.observability.svc.cluster.local
-            port                    80
-            labels                  job=fluentbit
-            auto_kubernetes_labels  on
-
-        # [OUTPUT]
-        #     name                      kafka
-        #     match                     app-test-analytics.*
-        #     brokers                   ${AZUREEVENTHUB_BROKER}
-        #     topics                    smp-analytics-traces
-        #     rdkafka.security.protocol SASL_SSL
-        #     rdkafka.sasl.username     $ConnectionString
-        #     rdkafka.sasl.password     ${AZUREEVENTHUB_STRING_CONNECTION}
-        #     rdkafka.sasl.mechanism    PLAIN
-
-        # # Elasticsearch running on Azure
-        # [OUTPUT]
-        #     Name  es
-        #     Match *
-        #     Host  ..cloudapp.azure.com
-        #     Port  9200
-        #     Type  docker
-        #     Logstash_Format On
-        #     Time_Key        @fbTimestamp
-        #     Trace_Output  Off
-        #     Trace_Error   On
-
-        # # Elasticsearch running on local machine
-        # [OUTPUT]
-        #     Name  es
-        #     Match *
-        #     Host  192.168.1.1
-        #     Port  9200
-        #     Type  docker
-        #     Logstash_Format On
-        #     Time_Key        @fbTimestamp
-        #     Retry_Limit     1
-
     ## https://docs.fluentbit.io/manual/pipeline/parsers
     customParsers: |
-        # EXAMPLE PARA MICROSERVICIOS
-        # [PARSER]
-        #     Name   json
-        #     Format json
-        #     Time_Key time
-        #     Time_Format %d/%b/%Y:%H:%M:%S %z
-
-        # [PARSER]
-        #     Name   app_test_jparser
-        #     Format json
-        #     Time_Key time
-        #     Time_Format %Y-%m-%dT%H:%M:%S.%L %z
-
-        # [PARSER]
-        #     Name        docker
-        #     Format      json
-        #     Time_Key    time
-        #     Time_Format %Y-%m-%dT%H:%M:%S.%L
-        #     Decode_Field_As  escaped_utf8 log
-
         [PARSER]
             Name        docker_plain
             Format      regex
