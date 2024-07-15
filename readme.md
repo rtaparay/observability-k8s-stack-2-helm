@@ -1,4 +1,4 @@
-# Observability & Logging en AWS EKS Stack 2: Prometheus, Alermanager, Grafana, Loki, y Fluent Bit
+# Observability y Logging en AWS EKS Stack 2: Prometheus, Alermanager, Grafana, Loki, y Fluent Bit
 
 ## ☸️ Lista de herramientas y controladores de Kubernetes
 
