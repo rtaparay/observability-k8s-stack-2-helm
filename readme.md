@@ -1,16 +1,15 @@
 # Observabilidad y Registro en AWS EKS Stack 2: Prometheus, Alertmanager, Grafana, Loki y Fluent Bit
 
-## ☸️ Lista de herramientas y controladores de Kubernetes
+## Lista de herramientas y controladores de Kubernetes
 
-- 📂 **EBS CSI Driver** (EKS Addon)
-- 📊 **Helm charts**
-- 🧑‍🏭 **Prometheus Operator** (usando el helm chart kube-prometheus-stack)
-- 🔔 **Alertmanager** (usando el helm chart kube-prometheus-stack)
-- 💻 **Grafana** (usando el helm chart kube-prometheus-stack)
-- 🗃️ **Loki** (usando el helm chart de Grafana)
-- 🔎 **Fluent-Bit** (usando el helm chart de Fluent-Bit)
+- **EBS CSI Driver** (EKS Addon)
+- **Prometheus Operator** (usando el helm chart kube-prometheus-stack)
+- **Alertmanager** (usando el helm chart kube-prometheus-stack)
+- **Grafana** (usando el helm chart kube-prometheus-stack)
+- **Loki** (usando el helm chart de Grafana)
+- **Fluent-Bit** (usando el helm chart de Fluent-Bit)
 
-## 📚 Historia
+## Historia
 
 1. Instalación de Prometheus Operator y Grafana en el clúster EKS.
 2. Configuración de reglas de alerta, monitores de servicio y AlertManager para alertas por correo electrónico.
@@ -18,10 +17,10 @@
 4. Instalación de Promtail en el clúster EKS y configuración para enviar registros a Loki.
 5. Configuración de Grafana para mostrar los registros de la aplicación.
 
-## ✅ Lista de servicios de AWS
+## Lista de servicios de AWS
 
-- 👑 **Amazon EKS**
-- 💻 **Amazon EC2**
+- **Amazon EKS**
+- **Amazon EC2**
 
 ## ☸️ Monitoreo
 
@@ -41,20 +40,16 @@ Fluent Bit es un procesador de logs rápido y flexible, compatible con varios si
 
 ### 🔗 Loki
 
-También es una herramienta de código abierto diseñada y desarrollada por Grafana Labs. Consume datos enviados por Promtail u otras herramientas, los procesa y los filtra.
-Usamos LogQL para consultar los registros de Loki.
-Loki se puede integrar con muchos servicios en la nube; en este blog usaremos el bucket AWS S3 para almacenar los registros.
+También es una herramienta de código abierto diseñada y desarrollada por Grafana Labs. Consume datos enviados por Promtail u otras herramientas, los procesa y los filtra. Usamos LogQL para consultar los registros de Loki. Loki se puede integrar con muchos servicios en la nube; en este blog usaremos el bucket AWS S3 para almacenar los registros.
 
 ###  🖥️Grafana:
 
 Es una herramienta de visualización comúnmente utilizada para monitoreo y registro.
-Grafana se puede integrar con Prometheus, Loki y muchas otras herramientas para crear un hermoso panel de control.
-Grafana consultará a Prometheus y Loki para obtener las métricas y los registros.
+Grafana se puede integrar con Prometheus, Loki y muchas otras herramientas para crear un hermoso panel de control. Grafana consultará a Prometheus y Loki para obtener las métricas y los registros.
 
 🎯 Architecture:
 
 ![image](./arquitectura.png)  
-
 
 Como puede ver en la arquitectura, Prometheus extrae métricas de la aplicación y el clúster y las almacena en volúmenes AWS EBS para mantenerlas persistentes en caso de falla del pod. De la misma manera, Grafana y Alermanger también almacenarán sus datos dentro del volumen EBS.
 
@@ -65,10 +60,8 @@ Loki agregará y procesará los registros y los enviará al depósito AWS S3.
 Grafana consultará a Prometheus y Loki para obtener métricas y registros.
 
 
-## 🚀 Guía paso a paso
-
-
-## ⚓ Instalar el gráfico Helm
+## 🚀 Guía paso a paso:
+## Instalar el repo necesarios:
 
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
@@ -76,7 +69,7 @@ helm repo add grafana https://grafana.github.io/helm-charts
 
 helm repo update
 
-## ⚒️ Instalar y configurar Grafana + Prometheus + Alertmanager:
+## Instalar y configurar Grafana + Prometheus + Alertmanager:
 
 Ahora, instalemos el operador Prometheus en el clúster AWS EKS usando el gráfico Helm.
 
@@ -88,18 +81,18 @@ helm show values prometheus-community/kube-prometheus-stack --version=61.3.0 > o
 
 helm install observability-stack prometheus-community/kube-prometheus-stack --version=61.3.0 -n observability -f prometheus/custom_observability_stack_values.yaml
 
-helm upgrade -i observability-stack prometheus-community/kube-prometheus-stack --version=61.3.0 -n observability -f prometheus/custom_observability_stack_values.yaml
-
 kubectl -n observability get service
 kubectl -n observability get pods -l "release=observability-stack"
 
-Es hora de aplicar todas estas configuraciones. Ejecute el siguiente comando
+Es hora de aplicar todas estas configuraciones. Ejecute el siguiente comando:
+
 kubectl apply -k observability-k8s-stack-2-helm/
+
 kubectl apply -f kustomization.yml
 
 Necesitamos esperar un par de minutos para que el operador de Prometheus recargue su configuración.
 
-## 🚀 Visite la interfaz de Grafana 
+## Visite la interfaz de Grafana 
 
 kubectl port-forward -n observability service/observability-stack-grafana 8080:80
 http://localhost:8080
@@ -110,17 +103,16 @@ Haga clic en el New botón de la parte superior derecha, seleccione Importen el 
 
 Importe el panel de la comunidad escribiendo 315 y seleccionando Loki como fuente de datos.
 
-Guia de alertas:
+### Guia de alertas:
 - https://samber.github.io/awesome-prometheus-alerts/rules#kubernetes
 
 Visualizar contraseña de admin:
 
 kubectl -n observability get secret observability-stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ;echo
-- prom-operator
-kubectl -n observability get secret observability-stack-grafana -o jsonpath="{.data.admin-user}" | base64 --decode ;echo
-- admin
 
-Cargar Datasources y dashboards:
+kubectl -n observability get secret observability-stack-grafana -o jsonpath="{.data.admin-user}" | base64 --decode ;echo
+
+### Cargar Datasources y dashboards:
 
 kubectl create secret generic datasources-secret -n observability --from-file=grafana/datasources/datasources.yaml
 
@@ -136,7 +128,7 @@ kubectl get configmaps -n observability | grep dashboard-cm | awk '{print $1}' |
 
 kubectl get cm,secret -n observability --show-labels | grep -E "NAME|dashboard-cm|datasource"
 
-## 🚀 Visite la interfaz de usuario de Prometheus:
+## Visite la interfaz de usuario de Prometheus:
 
 kubectl port-forward -n observability service/prometheus-operated 9090:9090
 - http://localhost:9090
@@ -158,7 +150,7 @@ datasource:
     - http://prometheus-server.observability.svc.cluster.local
 
 
-## 🚀 Visite la interfaz de usuario de Alertmanager:
+## Visite la interfaz de usuario de Alertmanager:
 
 kubectl port-forward -n observability service/alertmanager-operated 9093:9093
 - http://localhost:9093
@@ -185,7 +177,7 @@ annotations: información descriptiva sobre la alerta. Estos campos pueden brind
 
 — — description: Una descripción detallada que incluye valores dinámicos de las etiquetas de alerta: (Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-running state for longer than 15 minutes.\n VALUE = {{ $value }}\n LABELS = {{ $labels }}).
 
-## 🚀 Visite la interfaz de usuario de Prometheus
+## Visite la interfaz de usuario de Prometheus
 
 Compruebe la alerta en el estado de activación ejecutando, Verifique que Alertmanager recibió una alerta de Prometheus:
 
@@ -195,18 +187,10 @@ Nota:
 - Debería recibir una notificación por correo electrónico en su dirección de correo configurada.
 - Lo configuramos para enviar correos electrónicos cada 5 minutos hasta que se resuelva el problema.
 
-## ⚒️ Instalación de Loki
+## Instalación de Loki
 
 Hemos configurado la monitorización, ahora configuremos Loki.
-Ya agregamos el repositorio de Grafana Helm en el paso anterior, que incluye tanto a Loki como a Promtail.
-
-Queremos que Loki almacene registros en un depósito AWS S3, por lo que necesita un depósito y los permisos pertinentes para enviar registros al depósito AWS S3.
-
-Dirígete a la consola AWS S3 y crea un depósito con un nombre único.
-
-A continuación, crea una política de IAM en la consola de AWS. Puedes encontrar la política en loki/aws-s3-policy.json, pero recuerda agregar el ARN de tu bucket.
-
-Vamos a crear un rol de IAM, adjuntar la política y crear un access_key_id y secret_access_key
+Ya agregamos el repositorio de Grafana Helm en el paso anterior, que incluye tanto a Loki como fluent-bit.
 
 Ahora estamos listos para configurar Loki:
 
@@ -219,8 +203,6 @@ helm show values grafana/loki-distributed --version=0.79.0 > loki/loki_distribut
 
 helm install loki grafana/loki-distributed --version=0.79.0 --namespace=observability 
 
-helm upgrade -i loki grafana/loki-distributed --version=0.79.0 --namespace=observability
-
 Ahora, importe el panel de la comunidad escribiendo 15141 y seleccionando Loki como fuente de datos.
 
 Ahora, sigamos adelante y veamos nuestros registros en el panel de Grafana.
@@ -229,7 +211,7 @@ Antes de agregar un nuevo panel, necesitamos agregar nuevas fuentes de datos par
 
 datasource: http://loki-loki-distributed-gateway.observability.svc.cluster.local
 
-## ⚒️ Instalación de Fluent-Bit
+## Instalación de Fluent-Bit
 
 Ahora, configuremos el recopilador de registros, Fluent-Bit. 
 
@@ -241,20 +223,16 @@ helm search repo fluent/fluent-bit --versions | grep 2.0.8
 
 helm show values fluent/fluent-bit --version=0.22.0 > fluent_bit_values.yml
 
-Tenemos que cambiar OUTPUT S3 el atributo para que fluent-bit sepa dónde enviar los registros. Consulta la imagen como referencia, También proporcioné un archivo de configuración actualizado fluent-bit/custom_fluent_bit_values.yml
+Instalamos fluent-bit con las configuraciones personalizadas:
 
 helm install fluent-bit fluent/fluent-bit --version=0.22.0 --namespace=observability -f fluent-bit/custom_fluent_bit_values.yaml
 
-helm upgrade --install fluent-bit fluent/fluent-bit --version=0.22.0 --namespace=observability -f fluent-bit/custom_fluent_bit_values.yaml
 
 Documentacion oficial: https://docs.fluentbit.io/manual/v/2.0/pipeline/outputs/loki
 
-Para entender cómo se tratan los logs como streams, necesitamos comprender qué es el STDOUT y STDERR. En Linux, cada proceso tiene tres descriptores de archivo estándar: STDIN, STDOUT y STDERR. STDIN es la entrada estándar, desde donde un proceso lee su entrada. STDOUT es la salida estándar, donde un proceso escribe su salida. STDERR es la salida de error estándar, donde un proceso escribe sus mensajes de error.
+Ahora, intentemos generar registros desde su aplicación seleccionando el default namespace o el namespace que tiene creado en el menú desplegable en la parte superior.
 
-Ahora, intentemos generar registros desde su aplicación seleccionando el default espacio de nombres en el menú desplegable en la parte superior.
-Puede ejecutar ese test.sh script o visitarlo http://YOUR_LOAD_BALANCER_DNS_NAME/logsen el navegador.
-
-## 🧼 Limpieza
+## Limpieza
 
 kubectl delete -k app/
 
