@@ -9,18 +9,6 @@ datasources:
     version: 1
     editable: true
     
-  # Prometheus Datasource
-  # - name: Prometheus-2
-  #   type: prometheus
-  #   uid: prometheus
-  #   url: http://observability-stack-kube-p-prometheus.observability:9090/
-  #   access: proxy
-  #   version: 1
-  #   editable: true
-  #   jsonData:
-  #     httpMethod: POST
-  #     timeInterval: 30s
-
   # Alertmanager Datasource
   - name: Alertmanager
     type: alertmanager

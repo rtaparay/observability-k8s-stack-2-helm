@@ -3,7 +3,7 @@ grafana:
     type: NodePort
   persistence:
     enabled: true
-    storageClassName: longhorn # gp2
+    storageClassName: gp2
     accessModes: ["ReadWriteOnce"]
     size: 1Gi
 prometheus:
@@ -13,7 +13,7 @@ prometheus:
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: longhorn # gp2
+          storageClassName: gp2
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
@@ -25,7 +25,7 @@ alertmanager:
     storage:
       volumeClaimTemplate:
         spec:
-          storageClassName: longhorn # gp2
+          storageClassName: gp2
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:

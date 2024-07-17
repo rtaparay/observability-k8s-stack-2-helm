@@ -1,62 +1,51 @@
-# Observability y Logging en AWS EKS Stack 2: Prometheus, Alermanager, Grafana, Loki, y Fluent Bit
+# Observabilidad y Registro en AWS EKS Stack 2: Prometheus, Alertmanager, Grafana, Loki y Fluent Bit
 
 ## ☸️ Lista de herramientas y controladores de Kubernetes
 
-📂 EBS CSI Driver (EKS Addon)
-
-📊 Helm charts
-
-🧑‍🏭 Prometheus Operator (using kube-prometheus-stack helm chart)
-
-🔔 Alertmanager (using kube-prometheus-stack helm chart)
-
-💻 Grafana (using kube-prometheus-stack helm chart)
-
-🗃️ Loki (using grafana helm chart)
-
-🔎 Fluent-Bit (using Fluent-Bit helm chart)
+- 📂 **EBS CSI Driver** (EKS Addon)
+- 📊 **Helm charts**
+- 🧑‍🏭 **Prometheus Operator** (usando el helm chart kube-prometheus-stack)
+- 🔔 **Alertmanager** (usando el helm chart kube-prometheus-stack)
+- 💻 **Grafana** (usando el helm chart kube-prometheus-stack)
+- 🗃️ **Loki** (usando el helm chart de Grafana)
+- 🔎 **Fluent-Bit** (usando el helm chart de Fluent-Bit)
 
 ## 📚 Historia
 
-Instalar Prometheus Operator y Grafana en el clúster EKS.
-
-Configure reglas de alerta, monitores de servicio y AlertManager para alertas por correo electrónico.
-
-Instale Loki en el clúster EKS y configúrelo con AWS S3 para el almacenamiento de registros.
-
-Instale Promtail en el clúster EKS y configúrelo para enviar registros a Loki.
-
-Configure Grafana para mostrar los registros de la aplicación.
+1. Instalación de Prometheus Operator y Grafana en el clúster EKS.
+2. Configuración de reglas de alerta, monitores de servicio y AlertManager para alertas por correo electrónico.
+3. Instalación de Loki en el clúster EKS y configuración con AWS S3 para el almacenamiento de registros.
+4. Instalación de Promtail en el clúster EKS y configuración para enviar registros a Loki.
+5. Configuración de Grafana para mostrar los registros de la aplicación.
 
 ## ✅ Lista de servicios de AWS
 
-👑 Amazon EKS
-
-💻 Amazon EC2
+- 👑 **Amazon EKS**
+- 💻 **Amazon EC2**
 
 ## ☸️ Monitoreo
+
 El monitoreo implica rastrear el rendimiento de su aplicación y sus recursos, y enviar alertas cuando algo funciona lentamente o falla, para evitar que los problemas se agraven.
 
-📊 Prometheus:
+### 📊 Prometheus
 
-Es una herramienta de monitoreo de código abierto que rastrea su carga de trabajo y almacena todas sus métricas en una base de datos de series de tiempo.Usamos PromQL para consultar las métricas En este blog, almacenaremos datos dentro de un volumen de AWS EBS.
+Prometheus es una herramienta de monitoreo de código abierto que rastrea su carga de trabajo y almacena todas sus métricas en una base de datos de series de tiempo. Usamos PromQL para consultar las métricas. En este blog, almacenaremos datos dentro de un volumen de AWS EBS.
 
-📢 Alert manager:
+### 📢 Alertmanager
 
-Es un componente de Prometheus responsable de enviar alertas a los usuarios.
+Alertmanager es un componente de Prometheus responsable de enviar alertas a los usuarios.
 
+### 📜 Fluent-Bit
 
-📜 Fluent-bit:
+Fluent Bit es un procesador de logs rápido y flexible, compatible con varios sistemas operativos. Se utiliza para enrutar los logs a varios destinos de AWS, como Amazon CloudWatch, Amazon Kinesis Data Firehose, Amazon Simple Storage Service (Amazon S3) y Amazon OpenSearch. Para esta POC, recopila todos los registros de los contenedores y los envía a Loki.
 
-Fluent Bit es un procesador de logs rápido y flexible. compatible con varios sistemas operativos. Se utiliza para enrutar los logs a varios destinos de AWS, como Amazon CloudWatch, Amazon Kinesis Data Firehose, Amazon Simple Storage Service (Amazon S3) y Amazon OpenSearch, para esta POC recopila todos los registros de los contenedores y los envía a Loki.
-
-🔗Loki: 
+### 🔗 Loki
 
 También es una herramienta de código abierto diseñada y desarrollada por Grafana Labs. Consume datos enviados por Promtail u otras herramientas, los procesa y los filtra.
 Usamos LogQL para consultar los registros de Loki.
 Loki se puede integrar con muchos servicios en la nube; en este blog usaremos el bucket AWS S3 para almacenar los registros.
 
-🖥️Grafana:
+###  🖥️Grafana:
 
 Es una herramienta de visualización comúnmente utilizada para monitoreo y registro.
 Grafana se puede integrar con Prometheus, Loki y muchas otras herramientas para crear un hermoso panel de control.
@@ -77,41 +66,6 @@ Grafana consultará a Prometheus y Loki para obtener métricas y registros.
 
 
 ## 🚀 Guía paso a paso
-
-🧑‍💻 Implementar la aplicación Nodejs
-
-Inicializa una aplicación Express y configura el registro.
-
-Métricas de Prometheus con prom-client: integra Prometheus para monitorear solicitudes HTTP utilizando la prom-clientbiblioteca:
-
-- http_requests_total counter
-- http_request_duration_seconds histogram
-- http_request_duration_summary_seconds summary
-- node_gauge_example gauge for tracking async task duration
-
-Basic Routes:
-- / : Returns a "Running" status.
-- /healthy: Returns the health status of the server.
-- /serverError: Simulates a 500 Internal Server Error.
-- /notFound: Simulates a 404 Not Found error.
-- /logs: Generates logs using the custom logging function.
-- /crash: Simulates a server crash by exiting the process.
-- /example: Tracks async task duration with a gauge.
-- /metrics: Exposes Prometheus metrics endpoint.
-
-Después de agregar las métricas necesarias, dockerice la aplicación y envíela al registro de contenedores. Se app/service.ymlcreará un LoadBalancer para exponer la aplicación en Internet. Aplique el archivo:
-
-kubectl apply -k app/
-
-Ahora, puedes tomar el nombre DNS del Load Balancer y visitar el sitio web.
-Es bueno generar una carga mediante un script automatizado. En el directorio raíz, encontrará test.sh, que generará la carga enviando una gran cantidad de solicitudes.
-Entonces, abra otra nueva terminal y ejecute el siguiente comando, tal como se muestra en la siguiente imagen.
-
-kubectl get ingress
-
-app/test.sh $YOUR_LOAD_BALANCER_DNS_NAME
-
-- Nota: Continúe ejecutando el comando test.sh y no cierre la terminal por un momento.
 
 
 ## ⚓ Instalar el gráfico Helm
@@ -140,7 +94,7 @@ kubectl -n observability get service
 kubectl -n observability get pods -l "release=observability-stack"
 
 Es hora de aplicar todas estas configuraciones. Ejecute el siguiente comando
-kubectl apply -k monitoring-k8s-stack-helm/
+kubectl apply -k observability-k8s-stack-2-helm/
 kubectl apply -f kustomization.yml
 
 Necesitamos esperar un par de minutos para que el operador de Prometheus recargue su configuración.
@@ -151,8 +105,6 @@ kubectl port-forward -n observability service/observability-stack-grafana 8080:8
 http://localhost:8080
 
 Verá muchos paneles de control predefinidos. Puede utilizarlos para realizar un seguimiento o diseñar o importar los suyos propios.
-
-Importe el panel que creé para la aplicación Node.js, disponible en el grafana-dashboard directorio
 
 Haga clic en el New botón de la parte superior derecha, seleccione Importen el menú desplegable e importe el panel.
 
@@ -215,11 +167,7 @@ Haga clic en el Status botón de la parte superior para ver las configuraciones 
 
 Ahora, bloqueemos la aplicación Node.js dos veces para recibir alertas de Alertmanager.
 La aplicación Nodejs tiene una ruta /crash que bloquea el contenedor y Kubernetes lo reinicia automáticamente. Sin embargo, si la aplicación se bloquea más de 2 veces, Alertmanager enviará una alerta a nuestro correo electrónico.
-Vamos a verlo en la práctica
 
-http://YOUR_LOAD_BALANCER_DNS_NAME/crash
-
-kubectl get pods
 
 ### Glosario de los campos de alerta:
 

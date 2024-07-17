@@ -2,20 +2,13 @@
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "Stmt1719324853777",
+            "Effect": "Allow",
             "Action": [
+                "s3:PutObject",
                 "s3:ListBucket",
-                "s3:GetBucketLocation",
-                "s3:PutObject"
+                "s3:GetBucketLocation"
             ],
-            "Effect": "Allow",
-            "Resource": "arn:aws:s3:::s3-artefactos-test-devops-2025"
-        },
-        {
-            "Sid": "Stmt1719324853778",
-            "Action": "s3:*",
-            "Effect": "Allow",
-            "Resource": "arn:aws:s3:::s3-artefactos-test-devops-2025/*"
+            "Resource": "*"
         }
     ]
 }
